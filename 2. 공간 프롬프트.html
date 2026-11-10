@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3fb">
+  <title>나만의 공간 프롬프트 만들기</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+      color: #231937;
+      background: #f6f3fb;
+      --ink: #231937;
+      --muted: #655b73;
+      --accent: #5b35bb;
+      --border: #e4dcef;
+      --paper: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, textarea { font: inherit; }
+    button, .choice { touch-action: manipulation; }
+    :focus-visible { outline: 3px solid #7953d3; outline-offset: 3px; }
+
+    .shell { width: min(1100px, 100% - 48px); margin: 40px auto 48px; }
+    .hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      padding: 29px 36px 32px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      border-radius: 25px;
+      color: #fff;
+      background: linear-gradient(112deg, #33215f, #50318f 72%, #5b39a4);
+    }
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      color: #eee4ff;
+      font-size: .78rem;
+      font-weight: 750;
+      letter-spacing: .04em;
+    }
+    .kicker::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ffd99c;
+      content: "";
+    }
+    h1 { margin: 10px 0 9px; font-size: clamp(1.7rem, 4.4vw, 2.55rem); line-height: 1.23; letter-spacing: -.045em; }
+    .hero p:last-child { margin: 0; color: #f0e8ff; font-size: .95rem; line-height: 1.6; }
+    .hero-art { flex: 0 0 184px; width: 184px; height: 104px; margin: 0 8px 0 0; }
+
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+    .tab {
+      min-height: 48px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--paper);
+      color: var(--muted);
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .tab:hover { border-color: #815bd1; color: var(--accent); }
+    .tab[aria-selected="true"] { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    #stage-1 { grid-column: 1 / -1; }
+    #stage-1 .live, #stage-1 .helper { display: none; }
+    #stage-1 .prompt { min-height: 0; height: auto; margin-top: 12px; resize: none; }
+    .card {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 0 8px 26px #38245808;
+    }
+    .card-heading { display: flex; align-items: center; gap: 10px; }
+    .step {
+      display: inline-grid;
+      min-width: 32px;
+      height: 29px;
+      place-items: center;
+      border-radius: 8px;
+      background: #eee5ff;
+      color: #5432a2;
+      font-size: .77rem;
+      font-weight: 800;
+    }
+    h2 { margin: 0; font-size: 1.24rem; letter-spacing: -.035em; }
+    .helper { margin: 8px 0 20px; color: var(--muted); font-size: .9rem; line-height: 1.55; }
+    .fixed-ratio { align-self: end; margin: 0 0 11px; color: var(--muted); font-size: .9rem; }
+
+    .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+    .field { display: grid; gap: 7px; min-width: 0; }
+    .wide { grid-column: 1 / -1; }
+    .field span, legend { font-size: .9rem; font-weight: 750; }
+    .field input {
+      width: 100%;
+      min-height: 46px;
+      padding: 9px 12px;
+      border: 1px solid #dbd2e9;
+      border-radius: 11px;
+      color: var(--ink);
+      background: #fcfaff;
+    }
+    .field input::placeholder { color: #70647f; opacity: 1; }
+    .field input:focus-visible { outline-offset: 1px; }
+    .options { display: flex; flex-wrap: wrap; gap: 15px 24px; margin-top: 20px; padding-top: 17px; border-top: 1px solid var(--border); }
+    fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+    legend { margin: 0 0 8px; padding: 0; }
+    .choices { display: flex; flex-wrap: wrap; gap: 6px; }
+    .choice { position: relative; cursor: pointer; }
+    .choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .choice span {
+      display: grid;
+      min-width: 48px;
+      min-height: 44px;
+      place-items: center;
+      padding: 7px 10px;
+      border: 1px solid #ded5ec;
+      border-radius: 9px;
+      background: #fff;
+      color: #514465;
+      font-size: .85rem;
+      font-weight: 720;
+      white-space: nowrap;
+    }
+    .choice:hover span { background: #f8f3ff; }
+    .choice input:checked + span { border-color: #815bd1; color: #4d2899; background: #efe6ff; }
+    .choice input:focus-visible + span { outline: 3px solid #7953d3; outline-offset: 3px; }
+
+    .preview { display: flex; flex-direction: column; }
+    .preview-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 99px;
+      background: #edf7f0;
+      color: #265d45;
+      font-size: .72rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .live::before { width: 6px; height: 6px; border-radius: 50%; background: #438663; content: ""; }
+    .prompt {
+      width: 100%;
+      min-height: 300px;
+      height: 320px;
+      flex: 1;
+      resize: vertical;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      margin: 0;
+      padding: 15px 16px;
+      border: 1px solid #e3d9ef;
+      border-radius: 12px;
+      background: #f9f6fd;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: .91rem;
+      line-height: 1.65;
+    }
+    .copy {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 47px;
+      width: 100%;
+      margin-top: 13px;
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 760;
+      cursor: pointer;
+    }
+    .copy:hover { background: #4c299f; }
+    .copy svg { width: 17px; height: 17px; }
+    .status { margin: 8px 0 0; min-height: 1.35em; color: #4d2899; text-align: center; font-size: .82rem; line-height: 1.35; }
+
+    @media (max-width: 760px) {
+      .shell { width: min(550px, 100% - 30px); margin: 19px auto 28px; }
+      .workspace { grid-template-columns: 1fr; gap: 15px; }
+      .hero { padding: 23px; margin-bottom: 15px; border-radius: 20px; }
+      .hero-art { display: none; }
+      .card { padding: 19px; border-radius: 19px; }
+    }
+    @media (max-width: 370px) {
+      .inputs { grid-template-columns: 1fr; }
+      .preview-head { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="kicker">AI메이트 · 공간 디자인</p>
+        <h1>나만의 공간 프롬프트 만들기</h1>
+        <p>사진을 보내고, 내 캐릭터가 지낼 공간을 만들고, 캐릭터를 배치해 봐요.</p>
+      </div>
+      <svg class="hero-art" viewBox="0 0 184 104" fill="none" aria-hidden="true">
+        <rect x="38" y="13" width="103" height="78" rx="13" transform="rotate(-9 38 13)" fill="#694ba3" stroke="#ab8cdb" stroke-width="1.5"/>
+        <rect x="52" y="13" width="103" height="78" rx="13" transform="rotate(7 52 13)" fill="#f5eaff" stroke="#c7abed" stroke-width="1.5"/>
+        <path d="M64 79 91 49l14 19 15-12 20 31" fill="#ad8fdf"/>
+        <path d="m64 79 27-30 14 19 15-12 20 31" stroke="#6c45ae" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="116" cy="39" r="8" fill="#ffd68d"/>
+        <path d="M163 13c0 7-3 10-10 10 7 0 10 3 10 10 0-7 3-10 10-10-7 0-10-3-10-10ZM29 59c0 6-2.5 8.5-8.5 8.5 6 0 8.5 2.5 8.5 8.5 0-6 2.5-8.5 8.5-8.5-6 0-8.5-2.5-8.5-8.5Z" fill="#ffd99c"/>
+        <circle cx="164" cy="70" r="2.5" fill="#d6bdfa"/>
+        <circle cx="25" cy="25" r="2" fill="#d6bdfa"/>
+      </svg>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="프롬프트 단계">
+      <button class="tab" id="tab-1" type="button" role="tab" aria-selected="true" aria-controls="stage-1">1차 · 공간 만들기</button>
+      <button class="tab" id="tab-2" type="button" role="tab" aria-selected="false" aria-controls="stage-2" tabindex="-1">2차 · 공간 만들기</button>
+      <button class="tab" id="tab-3" type="button" role="tab" aria-selected="false" aria-controls="stage-3" tabindex="-1">3차 · 캐릭터 배치</button>
+    </div>
+
+    <div class="workspace">
+      <div id="stage-1" role="tabpanel" aria-labelledby="tab-1"></div>
+
+      <section class="card" id="stage-2" role="tabpanel" aria-labelledby="tab-2" hidden>
+        <div class="card-heading">
+          <span class="step" aria-hidden="true">02</span>
+          <h2>공간 설정하기</h2>
+        </div>
+        <p class="helper">정하고 싶은 것만 적어요. 빈칸은 AI가 캐릭터에 맞춰 정해요.</p>
+
+        <form id="settings">
+          <div class="inputs">
+            <label class="field">
+              <span>공간의 분위기</span>
+              <input id="mood" type="text" placeholder="예) 신비로운">
+            </label>
+            <label class="field">
+              <span>공간의 색</span>
+              <input id="color" type="text" placeholder="예) 연보라색">
+            </label>
+            <label class="field wide">
+              <span>공간에 들어갈 요소</span>
+              <input id="space-elements" type="text" placeholder="예) 구름 계단, 달 모양 창문">
+            </label>
+            <label class="field wide">
+              <span>공간의 특별한 특징</span>
+              <input id="feature" type="text" placeholder="예) 발을 디딜 때마다 별빛이 반짝임">
+            </label>
+          </div>
+
+          <div class="options">
+            <fieldset>
+              <legend>그림 방향</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="orientation" value="가로형" checked><span>가로형</span></label>
+                <label class="choice"><input type="radio" name="orientation" value="세로형"><span>세로형</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>그림 비율</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="ratio" value="1:1"><span>1:1</span></label>
+                <label class="choice"><input type="radio" name="ratio" value="4:3" checked><span>4:3</span></label>
+                <label class="choice"><input type="radio" name="ratio" value="16:9"><span>16:9</span></label>
+              </div>
+            </fieldset>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" id="stage-3" role="tabpanel" aria-labelledby="tab-3" hidden>
+        <div class="card-heading">
+          <span class="step" aria-hidden="true">03</span>
+          <h2>캐릭터 배치하기</h2>
+        </div>
+        <p class="helper">정하고 싶은 것만 적어요. 빈칸은 AI가 배경에 맞춰 정해요.</p>
+        <form id="placement">
+          <div class="inputs">
+            <label class="field wide">
+              <span>캐릭터의 위치</span>
+              <input name="position" type="text" placeholder="예) 가운데에서 살짝 오른쪽">
+            </label>
+            <label class="field wide">
+              <span>캐릭터의 포즈</span>
+              <input name="pose" type="text" placeholder="예) 돋보기를 들고 주변을 관찰하는 모습">
+            </label>
+            <label class="field wide">
+              <span>캐릭터 주변 효과</span>
+              <input name="effect" type="text" placeholder="예) 작은 별빛이 반짝임">
+            </label>
+          </div>
+          <div class="options">
+            <fieldset>
+              <legend>그림 방향</legend>
+              <div class="choices">
+                <label class="choice"><input type="radio" name="orientation" value="가로형" checked><span>가로형</span></label>
+                <label class="choice"><input type="radio" name="orientation" value="세로형"><span>세로형</span></label>
+              </div>
+            </fieldset>
+            <p class="fixed-ratio">그림 비율은 <strong>4:3</strong>이에요.</p>
+          </div>
+        </form>
+      </section>
+
+      <section class="card preview" id="preview-card" aria-labelledby="preview-title">
+        <div class="preview-head">
+          <div class="card-heading">
+            <h2 id="preview-title">1차 프롬프트</h2>
+          </div>
+          <span class="live">실시간 미리보기</span>
+        </div>
+        <p class="helper" id="preview-help">복사한 뒤, 공간 사진을 보낸 AI 채팅창에 붙여넣어요.</p>
+        <pre id="prompt" class="prompt" aria-labelledby="preview-title" aria-describedby="preview-help" tabindex="0"></pre>
+        <button class="copy" id="copy" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="8" y="8" width="12" height="12" rx="2"/>
+            <path d="M16 4H6a2 2 0 0 0-2 2v10"/>
+          </svg>
+          <span>프롬프트 복사하기</span>
+        </button>
+        <p class="status" id="status" role="status"></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const settings = document.querySelector('#settings');
+    const placement = document.querySelector('#placement');
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    const panels = tabs.map(tab => document.getElementById(tab.getAttribute('aria-controls')));
+    const workspace = document.querySelector('.workspace');
+    const previewCard = document.querySelector('#preview-card');
+    const preview = document.querySelector('#prompt');
+    const previewTitle = document.querySelector('#preview-title');
+    const previewHelp = document.querySelector('#preview-help');
+    const copyButton = document.querySelector('#copy');
+    const status = document.querySelector('#status');
+    const copyHints = [
+      '복사한 뒤, 사진을 첨부한 메시지에 붙여넣어요.',
+      '복사한 뒤, 캐릭터와 공간 사진을 보낸 AI 채팅창에 붙여넣어요.',
+      '배경이 완성되면, 복사한 프롬프트를 같은 AI 채팅창에 붙여넣어요.'
+    ];
+    const backgroundOnly = '캐릭터 사진은 공간의 색감과 분위기를 정하는 참고 자료로만 사용해줘. 완성 이미지에는 캐릭터를 넣지 말고, 캐릭터를 나중에 배치할 수 있도록 공간 배경만 만들어줘.';
+    let activeTab = 0;
+
+    function spacePrompt() {
+      const mood = settings.elements.mood.value.trim();
+      const color = settings.elements.color.value.trim();
+      const elements = settings.elements.namedItem('space-elements').value.trim();
+      const feature = settings.elements.feature.value.trim();
+      const orientation = settings.elements.orientation.value;
+      const ratio = settings.elements.ratio.value;
+      const moodText = mood ? mood + ' 분위기' : '캐릭터와 어울리는 분위기';
+      const colorText = color ? color + ' 톤' : '캐릭터와 어울리는 색 톤';
+      const elementsText = elements || '캐릭터와 어울리는 요소를 골라줘.';
+      const featureText = feature || '공간과 어울리는 특징을 정해줘.';
+
+      return [
+        '• 역할부여',
+        '너는 이제부터 아주 창의적이고 유능한 공간 디자이너야. 네가 만드는 공간은 아동·청소년들이 창작한 캐릭터가 살거나 활동하는 공간이 될 예정이야. 캐릭터와 어울리는 공간을 만들어야 해. 아까 내가 보낸 공간 사진들을 활용하고 아래 배경 설정 내용과 디자인 요청 사항을 반영해서 멋진 공간을 만들어줘.',
+        '',
+        '• 배경 설정',
+        '- 공간의 느낌 : ' + moodText + '의 ' + colorText + ' 공간',
+        '- 공간의 형태',
+        '  - 구성 요소 : ' + elementsText,
+        '  - 특징 : ' + featureText,
+        '',
+        '• 디자인 요청',
+        '- 잔인하거나 유해한 요소는 절대 제외',
+        '- 실내/실외여도 되고, 비현실적인 공간을 추천',
+        '- 상업용 저작권을 침해하지 않는 내용',
+        '- 콜라주 기법을 사용',
+        '- 비율 : ' + orientation + ', ' + ratio,
+        '- ' + backgroundOnly
+      ];
+    }
+
+    function placementPrompt() {
+      const position = placement.elements.position.value.trim();
+      const pose = placement.elements.pose.value.trim();
+      const effect = placement.elements.effect.value.trim();
+      const orientation = placement.elements.orientation.value;
+
+      return [
+        '이제 내가 아까 보내줬던 캐릭터를 지금 생성한 배경과 합성해볼 거야. 아래 내용과 같이 캐릭터를 배치해줘.',
+        '',
+        '• 배경과 캐릭터 합성 및 배치',
+        '- 캐릭터의 위치 : ' + (position || '배경에 어울리는 위치를 정해줘.'),
+        '- 캐릭터의 포즈 : ' + (pose || '장면에 어울리는 포즈를 정해줘.'),
+        '- 캐릭터 주변 효과 : ' + (effect || '공간과 캐릭터에 어울리는 효과를 정해줘.'),
+        '',
+        '• 디자인 요청',
+        '- 기존 배경과 캐릭터의 원형이 변형되지 않도록',
+        '- 비율 : ' + orientation + ' 4:3 비율'
+      ];
+    }
+
+    const prompts = [
+      () => [
+        '내가 보내는 첫 번째 사진이 내가 창작한 캐릭터이고, 두 번째부터 마지막 사진은 우리 지역아동센터 공간의 어떤 한 부분을 찍은 사진이야. 이 공간들의 요소를 활용해서 캐릭터에게 어울릴 만한 새로운 공간을 만들어줘.',
+        '',
+        backgroundOnly
+      ],
+      spacePrompt,
+      placementPrompt
+    ];
+
+    function updatePrompt() {
+      const content = document.createDocumentFragment();
+      for (const [index, line] of prompts[activeTab]().entries()) {
+        if (index > 0) content.append('\n');
+        // Keep the marker visible while preventing Markdown list conversion on paste.
+        const literalLine = line.replace(/^( *[•-]) /, '$1\u2060 ');
+        if (line.startsWith('• ')) {
+          const heading = document.createElement('strong');
+          heading.textContent = literalLine;
+          content.append(heading);
+        } else {
+          content.append(literalLine);
+        }
+      }
+      preview.replaceChildren(content);
+      status.textContent = '';
+    }
+
+    function selectTab(index) {
+      activeTab = index;
+      for (const [tabIndex, tab] of tabs.entries()) {
+        const selected = tabIndex === index;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        panels[tabIndex].hidden = !selected;
+      }
+      const previewParent = index === 0 ? panels[0] : workspace;
+      if (previewCard.parentElement !== previewParent) previewParent.append(previewCard);
+      previewTitle.textContent = `${index + 1}차 프롬프트`;
+      previewHelp.textContent = copyHints[index];
+      preview.scrollTop = 0;
+      updatePrompt();
+    }
+
+    for (const [index, tab] of tabs.entries()) {
+      tab.addEventListener('click', () => selectTab(index));
+      tab.addEventListener('keydown', event => {
+        let next;
+        switch (event.key) {
+          case 'ArrowLeft': next = (index + tabs.length - 1) % tabs.length; break;
+          case 'ArrowRight': next = (index + 1) % tabs.length; break;
+          case 'Home': next = 0; break;
+          case 'End': next = tabs.length - 1; break;
+          default: return;
+        }
+        event.preventDefault();
+        selectTab(next);
+        tabs[next].focus();
+      });
+    }
+
+    function copySelection() {
+      preview.focus();
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(preview);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        const copied = document.execCommand('copy');
+        if (copied) selection.removeAllRanges();
+        return copied;
+      } catch {
+        return false;
+      }
+    }
+
+    copyButton.addEventListener('click', async () => {
+      status.textContent = '';
+      const text = preview.textContent;
+      const html = '<p>' + preview.innerHTML
+        .replaceAll('\n  ', '\n&nbsp;&nbsp;')
+        .replaceAll('\n', '<br>') + '</p>';
+      try {
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+          'text/html': new Blob([html], { type: 'text/html' })
+        })]);
+      } catch {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          if (!copySelection()) {
+            status.textContent = '문장이 선택됐어요. Ctrl+C 또는 ⌘+C를 누르거나 복사 메뉴를 사용해요.';
+            return;
+          }
+          copyButton.focus();
+        }
+      }
+      status.textContent = '복사했어요! AI 채팅창에 붙여넣으면 돼요.';
+    });
+
+    for (const form of [settings, placement]) {
+      form.addEventListener('input', updatePrompt);
+      form.addEventListener('submit', event => event.preventDefault());
+    }
+    selectTab(0);
+  </script>
+</body>
+</html>
