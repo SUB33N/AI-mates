@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f4ff">
+  <title>프롬프트 만들기 | AI메이트</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #221b39;
+      background: linear-gradient(155deg, #f0eaff, #faf8ff 55%, #eef7ff);
+      font: 1rem/1.6 system-ui, sans-serif;
+    }
+    main { width: min(100% - 2.5rem, 56rem); margin: auto; padding: clamp(3rem, 11vw, 7rem) 0 3rem; }
+    header { margin-bottom: 2rem; }
+    .brand {
+      display: inline-block;
+      margin: 0;
+      padding: .3rem .8rem;
+      border-radius: 999px;
+      background: #e5dafc;
+      color: #4c347c;
+      font-weight: 750;
+    }
+    h1 { margin: .65rem 0 .4rem; font-size: clamp(2.1rem, 6.5vw, 4rem); line-height: 1.17; letter-spacing: -.055em; }
+    header > p:last-child { margin: 0; color: #544a68; }
+    nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .activity {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .55rem;
+      min-width: 0;
+      padding: clamp(1.2rem, 4vw, 1.65rem);
+      border: 1px solid #ded2f5;
+      border-radius: 1.35rem;
+      color: inherit;
+      background: #fff;
+      box-shadow: 0 .65rem 1.8rem #48336510;
+      text-decoration: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .activity.space { border-color: #c6dbea; }
+    .activity:hover { border-color: #7250b2; box-shadow: 0 .75rem 1.9rem #48336523; }
+    .activity.space:hover { border-color: #386c8d; }
+    .activity:focus-visible { outline: 3px solid #563e90; outline-offset: 4px; }
+    .number { padding: .25rem .6rem; border-radius: .55rem; background: #eee5ff; color: #503183; font-weight: 750; }
+    .space .number { background: #e0f3fa; color: #24566d; }
+    .activity strong { font-size: clamp(1.1rem, 3vw, 1.45rem); letter-spacing: -.035em; }
+    .description { color: #544a68; font-size: .95rem; }
+    .action { margin-top: auto; padding-top: .5rem; color: #503183; font-weight: 750; }
+    .space .action { color: #24566d; }
+    @media (max-width: 40rem) { nav { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { .activity { transition: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="brand">AI메이트</p>
+      <h1>프롬프트 만들기</h1>
+      <p>시작하고 싶은 활동을 골라보세요.</p>
+    </header>
+    <nav aria-label="프롬프트 활동">
+      <a class="activity" href="./1.%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8.html">
+        <span class="number">01</span>
+        <strong>캐릭터 프롬프트 만들기</strong>
+        <span class="description">나만의 캐릭터를 상상하고 특징을 글로 표현해요.</span>
+        <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="activity space" href="./2.%20%EA%B3%B5%EA%B0%84%20%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8.html">
+        <span class="number">02</span>
+        <strong>공간 프롬프트 만들기</strong>
+        <span class="description">만들고 싶은 공간을 떠올리고 프롬프트로 설명해요.</span>
+        <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
+      </a>
+    </nav>
+  </main>
+</body>
+</html>
