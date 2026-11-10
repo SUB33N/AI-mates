@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 창작 놀이터 - 캐릭터 & 배경 프롬프트 생성기</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font: Noto Sans KR -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .preset-chip {
+            transition: all 0.2s ease;
+        }
+        .preset-chip:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-lg flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check text-xl"></i>
+        <span id="toast-message" class="font-bold">프롬프트가 복사되었습니다!</span>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-400 text-indigo-900 p-2.5 rounded-2xl font-black text-xl shadow">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold leading-tight">AI 창작 놀이터</h1>
+                    <p class="text-xs text-indigo-200">클나무지역아동센터 · 캐릭터 & 배경 프롬프트 생성기</p>
+                </div>
+            </div>
+            <!-- Tab Switchers -->
+            <div class="flex bg-indigo-700/60 p-1.5 rounded-2xl space-x-1 w-full sm:w-auto text-sm font-semibold">
+                <button onclick="switchTab('character')" id="tab-btn-character" class="tab-btn active flex-1 sm:flex-none px-4 py-2 rounded-xl transition duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                    <span>캐릭터 프롬프트</span>
+                </button>
+                <button onclick="switchTab('background')" id="tab-btn-background" class="tab-btn flex-1 sm:flex-none px-4 py-2 bg-transparent text-indigo-100 hover:bg-indigo-600/50 rounded-xl transition duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-mountain-sun"></i>
+                    <span>배경 프롬프트</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Form Inputs -->
+        <section class="lg:col-span-7 space-y-6">
+
+            <!-- CHARACTER FORM -->
+            <div id="character-form-container" class="space-y-6">
+                <!-- Header Actions -->
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-indigo-100 text-indigo-700 font-bold px-2.5 py-1 rounded-lg text-sm">2회기 & 5회기 참고</span>
+                        <h2 class="font-bold text-lg text-slate-800">나만의 캐릭터 설정표</h2>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="fillSampleCharacter()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>예시 채우기</span>
+                        </button>
+                        <button onclick="resetCharacterForm()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>초기화</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. 이름 & 닮은 동물 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center font-black">1</span>
+                        <span>이름 및 닮은 동물</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">캐릭터 이름</label>
+                            <input type="text" id="char-name" placeholder="예: 몰랑이, 핑코" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">닮은 동물 선택</label>
+                            <select id="char-animal-select" onchange="handleAnimalSelect()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                                <option value="">동물을 선택하세요</option>
+                                <option value="앵무새">앵무새</option>
+                                <option value="쿼카">쿼카</option>
+                                <option value="연어">연어</option>
+                                <option value="토끼">토끼</option>
+                                <option value="고양이">고양이</option>
+                                <option value="코끼리">코끼리</option>
+                                <option value="강아지">강아지</option>
+                                <option value="수달">수달</option>
+                                <option value="고릴라">고릴라</option>
+                                <option value="custom">직접 입력</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="char-animal-custom-box" class="hidden">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">동물 직접 입력</label>
+                        <input type="text" id="char-animal-custom" placeholder="예: 여우, 레서판다" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">동물의 닮은 부분 (선택)</label>
+                        <input type="text" id="char-animal-trait" placeholder="예: 동글동글한 귀와 보슬보슬한 꼬리" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- 2. 좋아하는 것 & 분위기 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center font-black">2</span>
+                        <span>좋아하는 것 & 분위기</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">좋아하는 것 / 취미</label>
+                            <input type="text" id="char-likes" placeholder="예: 달콤한 마카롱 먹기, 낮잠 자기" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">전체적인 분위기</label>
+                            <input type="text" id="char-mood" placeholder="예: 밝고 활기찬, 포근하고 귀여운" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <!-- Quick Mood Chips -->
+                            <div class="flex flex-wrap gap-1.5 mt-2">
+                                <button type="button" onclick="setChipValue('char-mood', '귀엽고 사랑스러운')" class="preset-chip text-[11px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded-md font-medium">#귀여운</button>
+                                <button type="button" onclick="setChipValue('char-mood', '밝고 씩씩한')" class="preset-chip text-[11px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded-md font-medium">#씩씩한</button>
+                                <button type="button" onclick="setChipValue('char-mood', '신비롭고 몽환적인')" class="preset-chip text-[11px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded-md font-medium">#몽환적</button>
+                                <button type="button" onclick="setChipValue('char-mood', '장난기 많고 장난스러운')" class="preset-chip text-[11px] bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded-md font-medium">#장난꾸러기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 생김새 & 의상 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center font-black">3</span>
+                        <span>생김새 & 의상 소품</span>
+                    </h3>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">머리 / 몸통 / 팔다리 특징</label>
+                        <input type="text" id="char-appearance" placeholder="예: 동글동글한 얼굴, 통통한 몸통과 짧은 팔다리" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">전체 색상 톤</label>
+                            <input type="text" id="char-color" placeholder="예: 파스텔 핑크와 연노랑" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">옷과 소품</label>
+                            <input type="text" id="char-outfit" placeholder="예: 노란색 우비, 빨간 선글라스" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 성격, 표정, 특별한 능력 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center font-black">4</span>
+                        <span>성격, 표정 & 특별한 능력</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">성격</label>
+                            <input type="text" id="char-personality" placeholder="예: 친절하고 온순함" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">자주 짓는 표정</label>
+                            <input type="text" id="char-expression" placeholder="예: 활짝 웃는 미소" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">특별한 능력</label>
+                            <input type="text" id="char-ability" placeholder="예: 하늘을 날 수 있는 능력" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">능력을 보여주는 물건/효과</label>
+                            <input type="text" id="char-item" placeholder="예: 반짝이는 별 마법 지팡이" oninput="updateCharacterPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BACKGROUND FORM -->
+            <div id="background-form-container" class="space-y-6 hidden">
+                <!-- Header Actions -->
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-sm">설정표 6번 (태어난 곳)</span>
+                        <h2 class="font-bold text-lg text-slate-800">나만의 배경 / 공간 설정</h2>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="fillSampleBackground()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>예시 채우기</span>
+                        </button>
+                        <button onclick="resetBackgroundForm()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>초기화</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. 장소 및 분위기 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-black">1</span>
+                        <span>장소 및 분위기</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">장소 / 태어난 곳 이름</label>
+                            <input type="text" id="bg-location" placeholder="예: 구름 과자 마을, 비밀의 숲" oninput="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">장소의 전체 분위기</label>
+                            <input type="text" id="bg-mood" placeholder="예: 신비롭고 아늑한, 활기찬" oninput="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">핵심 요소 및 풍경</label>
+                        <input type="text" id="bg-elements" placeholder="예: 알록달록한 과자 집들과 거대한 무지개 호수" oninput="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    </div>
+                </div>
+
+                <!-- 2. 시간대, 날씨 & 색감 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-black">2</span>
+                        <span>시간대, 날씨 & 색감</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">시간대 및 날씨</label>
+                            <input type="text" id="bg-time" placeholder="예: 따뜻한 햇살이 내리쬐는 낮" oninput="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                            <div class="flex flex-wrap gap-1.5 mt-2">
+                                <button type="button" onclick="setChipValue('bg-time', '따뜻한 햇살이 내리쬐는 낮')" class="preset-chip text-[11px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 px-2 py-0.5 rounded-md font-medium">#화창한 낮</button>
+                                <button type="button" onclick="setChipValue('bg-time', '별이 빛나는 은은한 밤')" class="preset-chip text-[11px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 px-2 py-0.5 rounded-md font-medium">#별빛 밤</button>
+                                <button type="button" onclick="setChipValue('bg-time', '붉은 노을이 물드는 저녁')" class="preset-chip text-[11px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 px-2 py-0.5 rounded-md font-medium">#노을 저녁</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">전체 색감</label>
+                            <input type="text" id="bg-color" placeholder="예: 파스텔 톤, 따뜻한 몽환적 색감" oninput="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 그림체 및 비율 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-700 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-black">3</span>
+                        <span>그림체 & 구도</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">그림체 스타일</label>
+                            <select id="bg-style" onchange="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                                <option value="만화·그림책 동화 스타일">만화·그림책 동화 스타일</option>
+                                <option value="입체감 있는 3D 애니메이션 스타일">입체감 있는 3D 애니메이션 스타일</option>
+                                <option value="수채화 느낌의 판타지 일러스트">수채화 판타지 일러스트</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">화면 비율 및 구도</label>
+                            <select id="bg-ratio" onchange="updateBackgroundPrompt()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                                <option value="가로형 16:9 비율, 시원한 넓은 풍경 샷">가로형 16:9 (넓은 풍경)</option>
+                                <option value="세로형 3:4 비율, 중앙 구도">세로형 3:4 (중앙 구도)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Guidelines Box -->
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3 text-xs text-amber-800">
+                <i class="fa-solid fa-shield-halved text-amber-600 text-lg mt-0.5"></i>
+                <div class="space-y-1">
+                    <p class="font-bold">안전하고 멋진 AI 그림을 위한 꿀팁!</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-amber-700">
+                        <li>무서운 단어(괴물, 피, 무기 등) 대신 <b>‘장난꾸러기’, ‘씩씩한’</b> 같은 긍정적인 말 사용</li>
+                        <li>개인정보(내 진짜 이름, 학교, 사는 곳)는 프롬프트에 넣지 않아요!</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Real-time Output Preview -->
+        <section class="lg:col-span-5 flex flex-col space-y-4">
+            <div class="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-lg p-5 flex flex-col h-full min-h-[500px]">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span id="output-badge" class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <h2 class="font-bold text-slate-800">완성된 AI 프롬프트</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">실시간 미리보기</span>
+                </div>
+
+                <!-- Prompt Textarea Display -->
+                <div class="relative flex-1 bg-slate-900 rounded-xl p-4 overflow-hidden flex flex-col">
+                    <textarea id="prompt-output" readonly class="w-full flex-1 bg-transparent text-slate-100 font-mono text-xs sm:text-sm resize-none focus:outline-none leading-relaxed" placeholder="좌측 입력란에 내용을 작성하면 자동으로 프롬프트가 생성됩니다."></textarea>
+                </div>
+
+                <!-- Action Button -->
+                <div class="mt-4 pt-2">
+                    <button id="copy-btn" onclick="copyPrompt()" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-regular fa-copy text-base"></i>
+                        <span>프롬프트 복사하기</span>
+                    </button>
+                    <p class="text-center text-[11px] text-slate-400 mt-2">
+                        복사 후 챗봇(AI) 대화창에 바로 <kbd class="px-1 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px]">Ctrl+V</kbd> 하세요.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-6xl mx-auto px-4 text-center text-xs text-slate-500">
+            <p>클나무지역아동센터 · AI 창작 놀이터 · 2회기 활동지 기반</p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        let currentTab = 'character';
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            currentTab = tab;
+            const charContainer = document.getElementById('character-form-container');
+            const bgContainer = document.getElementById('background-form-container');
+            const charBtn = document.getElementById('tab-btn-character');
+            const bgBtn = document.getElementById('tab-btn-background');
+            const outputBadge = document.getElementById('output-badge');
+            const copyBtn = document.getElementById('copy-btn');
+
+            if (tab === 'character') {
+                charContainer.classList.remove('hidden');
+                bgContainer.classList.add('hidden');
+                
+                charBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+                charBtn.classList.remove('bg-transparent', 'text-indigo-100');
+                
+                bgBtn.classList.remove('active', 'bg-emerald-600', 'text-white');
+                bgBtn.classList.add('bg-transparent', 'text-indigo-100');
+
+                outputBadge.className = 'w-3 h-3 rounded-full bg-indigo-500 animate-pulse';
+                copyBtn.className = 'w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2 text-sm';
+                
+                updateCharacterPrompt();
+            } else {
+                charContainer.classList.add('hidden');
+                bgContainer.classList.remove('hidden');
+
+                bgBtn.classList.add('active', 'bg-emerald-600', 'text-white');
+                bgBtn.classList.remove('bg-transparent', 'text-indigo-100');
+                
+                charBtn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                charBtn.classList.add('bg-transparent', 'text-indigo-100');
+
+                outputBadge.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse';
+                copyBtn.className = 'w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2 text-sm';
+
+                updateBackgroundPrompt();
+            }
+        }
+
+        // Animal Select Helper
+        function handleAnimalSelect() {
+            const select = document.getElementById('char-animal-select');
+            const customBox = document.getElementById('char-animal-custom-box');
+            if (select.value === 'custom') {
+                customBox.classList.remove('hidden');
+            } else {
+                customBox.classList.add('hidden');
+            }
+            updateCharacterPrompt();
+        }
+
+        // Quick Tag Chip Helper
+        function setChipValue(inputId, value) {
+            document.getElementById(inputId).value = value;
+            if (currentTab === 'character') updateCharacterPrompt();
+            else updateBackgroundPrompt();
+        }
+
+        // Helper to format blank inputs
+        function getVal(id, fallback) {
+            const val = document.getElementById(id).value.trim();
+            return val !== '' ? val : fallback;
+        }
+
+        // Generate Character Prompt
+        function updateCharacterPrompt() {
+            if (currentTab !== 'character') return;
+
+            const name = getVal('char-name', '[캐릭터 이름]');
+            
+            // Animal Logic
+            const animalSelect = document.getElementById('char-animal-select').value;
+            let animal = '[닮은 동물]';
+            if (animalSelect === 'custom') {
+                animal = getVal('char-animal-custom', '[닮은 동물]');
+            } else if (animalSelect !== '') {
+                animal = animalSelect;
+            }
+            
+            const animalTrait = getVal('char-animal-trait', '');
+            const animalStr = animalTrait !== '' 
+                ? `${animal}을(를) 닮은 캐릭터 (닮은 부분: ${animalTrait})`
+                : `${animal}을(를) 닮은 캐릭터`;
+
+            const likes = getVal('char-likes', '[좋아하는 것]');
+            const mood = getVal('char-mood', '[분위기]');
+            const appearance = getVal('char-appearance', '[생김새]');
+            const color = getVal('char-color', '[색]');
+            const outfit = getVal('char-outfit', '[옷과 소품]');
+            const personality = getVal('char-personality', '[성격]');
+            const expression = getVal('char-expression', '[표정]');
+            const ability = getVal('char-ability', '[능력]');
+            const item = getVal('char-item', '[능력을 보여주는 물건]');
+
+            const promptText = `너는 아이들이 직접 생각한 캐릭터를 그려 주는 친절하고 창의적인 캐릭터 디자이너야. 아래 설정을 최대한 그대로 살려서, 특징이 가장 잘 드러나는 캐릭터 그림 한 장을 만들어 줘. 설정에 없는 것은 많이 더하지 말아 줘.
+
+【캐릭터 설정】
+- 이름: ${name}
+- 닮은 동물: ${animalStr}
+- 좋아하는 것과 분위기: ${likes}을(를) 좋아하고, ${mood} 느낌
+- 생김새: ${appearance}, 전체 색은 ${color} 톤, ${outfit}을(를) 하고 있음
+- 성격과 표정: ${personality} 성격이 잘 보이는 ${expression}
+- 특별한 능력: ${ability}을(를) 쓸 수 있고, ${item}이(가) 있음
+
+【그림 요청】
+- 정면을 보고 있는 전신 모습, 흰색 단색 배경
+- 만화·그림책 그림체 (실제 사람 사진처럼 보이지 않게)
+- 세로형 3:4 비율, 그림 안에 글자는 넣지 않기
+- 무섭거나 잔인한 요소는 절대 넣지 않기`;
+
+            document.getElementById('prompt-output').value = promptText;
+        }
+
+        // Generate Background Prompt
+        function updateBackgroundPrompt() {
+            if (currentTab !== 'background') return;
+
+            const location = getVal('bg-location', '[장소]');
+            const mood = getVal('bg-mood', '[분위기]');
+            const elements = getVal('bg-elements', '[핵심 요소]');
+            const time = getVal('bg-time', '[시간대 및 날씨]');
+            const color = getVal('bg-color', '[전체 색감]');
+            const style = document.getElementById('bg-style').value;
+            const ratio = document.getElementById('bg-ratio').value;
+
+            const promptText = `너는 아이들의 이야기 속에 나오는 아름다운 배경과 세계관을 그려 주는 배경 전문 아티스트야. 아래 설정을 바탕으로 캐릭터가 뛰어놀 수 있는 배경 그림 한 장을 만들어 줘.
+
+【배경 설정】
+- 장소: ${location}
+- 분위기 및 특징: ${mood} 분위기이며, ${elements}이(가) 돋보이는 곳
+- 시간대 및 날씨: ${time}
+- 전체 색감: ${color}
+
+【그림 요청】
+- 캐릭터가 등장하지 않는 순수한 배경 그림
+- ${style}, ${ratio}
+- 그림 안에 글자는 넣지 않기
+- 무섭거나 잔인한 요소는 절대 넣지 않기`;
+
+            document.getElementById('prompt-output').value = promptText;
+        }
+
+        // Sample Data Functions
+        function fillSampleCharacter() {
+            document.getElementById('char-name').value = "핑코";
+            document.getElementById('char-animal-select').value = "쿼카";
+            handleAnimalSelect();
+            document.getElementById('char-animal-trait').value = "동글동글한 귀와 밝은 미소";
+            document.getElementById('char-likes').value = "딸기 마카롱 먹기, 햇살 아래 산책";
+            document.getElementById('char-mood').value = "포근하고 귀여운";
+            document.getElementById('char-appearance').value = "통통한 머리와 몸통, 아기자기한 짧은 팔다리";
+            document.getElementById('char-color').value = "파스텔 분홍색과 따뜻한 크림색";
+            document.getElementById('char-outfit').value = "노란색 우비와 빨간 하트 헤드폰";
+            document.getElementById('char-personality').value = "언제나 주변을 밝고 기분 좋게 만드는 다정한";
+            document.getElementById('char-expression').value = "눈이 초승달 모양이 되는 환한 웃음";
+            document.getElementById('char-ability').value = "손을 대면 시든 꽃을 다시 피우는 능력";
+            document.getElementById('char-item').value = "빛나는 별 요술봉";
+            updateCharacterPrompt();
+        }
+
+        function resetCharacterForm() {
+            document.getElementById('char-name').value = "";
+            document.getElementById('char-animal-select').value = "";
+            handleAnimalSelect();
+            document.getElementById('char-animal-custom').value = "";
+            document.getElementById('char-animal-trait').value = "";
+            document.getElementById('char-likes').value = "";
+            document.getElementById('char-mood').value = "";
+            document.getElementById('char-appearance').value = "";
+            document.getElementById('char-color').value = "";
+            document.getElementById('char-outfit').value = "";
+            document.getElementById('char-personality').value = "";
+            document.getElementById('char-expression').value = "";
+            document.getElementById('char-ability').value = "";
+            document.getElementById('char-item').value = "";
+            updateCharacterPrompt();
+        }
+
+        function fillSampleBackground() {
+            document.getElementById('bg-location').value = "구름 과자 마을";
+            document.getElementById('bg-mood').value = "신비롭고 달콤한 동화 같은";
+            document.getElementById('bg-elements').value = "푹신푹신한 솜사탕 구름, 알록달록한 쿠키 집, 거대한 무지개 사탕 호수";
+            document.getElementById('bg-time').value = "따뜻한 골든 아워 햇살이 내리쬐는 오후";
+            document.getElementById('bg-color').value = "파스텔 톤의 핑크, 옐로우, 버터 색감";
+            document.getElementById('bg-style').value = "만화·그림책 동화 스타일";
+            document.getElementById('bg-ratio').value = "가로형 16:9 비율, 시원한 넓은 풍경 샷";
+            updateBackgroundPrompt();
+        }
+
+        function resetBackgroundForm() {
+            document.getElementById('bg-location').value = "";
+            document.getElementById('bg-mood').value = "";
+            document.getElementById('bg-elements').value = "";
+            document.getElementById('bg-time').value = "";
+            document.getElementById('bg-color').value = "";
+            document.getElementById('bg-style').selectedIndex = 0;
+            document.getElementById('bg-ratio').selectedIndex = 0;
+            updateBackgroundPrompt();
+        }
+
+        // Copy to Clipboard
+        function copyPrompt() {
+            const promptArea = document.getElementById('prompt-output');
+            promptArea.select();
+            promptArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast("프롬프트가 클립보드에 복사되었습니다!");
+            } catch (err) {
+                showToast("복사에 실패했습니다. 직접 드래그하여 복사해주세요.");
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = message;
+            
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 2500);
+        }
+
+        // On Load Init
+        window.onload = function() {
+            updateCharacterPrompt();
+        };
+    </script>
+</body>
+</html>
