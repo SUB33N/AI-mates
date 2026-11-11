@@ -14,7 +14,11 @@
       background: linear-gradient(155deg, #f0eaff, #faf8ff 55%, #eef7ff);
       font: 1rem/1.6 system-ui, sans-serif;
     }
-    main { width: min(100% - 2.5rem, 56rem); margin: auto; padding: clamp(3rem, 11vw, 7rem) 0 3rem; }
+    main {
+      width: min(100% - 2.5rem, 56rem);
+      margin: auto;
+      padding: clamp(3rem, 11vw, 7rem) 0 3rem;
+    }
     header { margin-bottom: 2rem; }
     .brand {
       display: inline-block;
@@ -25,9 +29,18 @@
       color: #4c347c;
       font-weight: 750;
     }
-    h1 { margin: .65rem 0 .4rem; font-size: clamp(2.1rem, 6.5vw, 4rem); line-height: 1.17; letter-spacing: -.055em; }
+    h1 {
+      margin: .65rem 0 .4rem;
+      font-size: clamp(2.1rem, 6.5vw, 4rem);
+      line-height: 1.17;
+      letter-spacing: -.055em;
+    }
     header > p:last-child { margin: 0; color: #544a68; }
-    nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
     .activity {
       display: flex;
       flex-direction: column;
@@ -44,17 +57,45 @@
       transition: border-color .18s, box-shadow .18s;
     }
     .activity.space { border-color: #c6dbea; }
-    .activity:hover { border-color: #7250b2; box-shadow: 0 .75rem 1.9rem #48336523; }
+    .activity.story { border-color: #efd4bb; }
+    .activity:hover {
+      border-color: #7250b2;
+      box-shadow: 0 .75rem 1.9rem #48336523;
+    }
     .activity.space:hover { border-color: #386c8d; }
-    .activity:focus-visible { outline: 3px solid #563e90; outline-offset: 4px; }
-    .number { padding: .25rem .6rem; border-radius: .55rem; background: #eee5ff; color: #503183; font-weight: 750; }
+    .activity.story:hover { border-color: #a56530; }
+    .activity:focus-visible {
+      outline: 3px solid #563e90;
+      outline-offset: 4px;
+    }
+    .number {
+      padding: .25rem .6rem;
+      border-radius: .55rem;
+      background: #eee5ff;
+      color: #503183;
+      font-weight: 750;
+    }
     .space .number { background: #e0f3fa; color: #24566d; }
-    .activity strong { font-size: clamp(1.1rem, 3vw, 1.45rem); letter-spacing: -.035em; }
+    .story .number { background: #fff0df; color: #8b5425; }
+    .activity strong {
+      font-size: clamp(1.1rem, 3vw, 1.45rem);
+      letter-spacing: -.035em;
+    }
     .description { color: #544a68; font-size: .95rem; }
-    .action { margin-top: auto; padding-top: .5rem; color: #503183; font-weight: 750; }
+    .action {
+      margin-top: auto;
+      padding-top: .5rem;
+      color: #503183;
+      font-weight: 750;
+    }
     .space .action { color: #24566d; }
-    @media (max-width: 40rem) { nav { grid-template-columns: 1fr; } }
-    @media (prefers-reduced-motion: reduce) { .activity { transition: none; } }
+    .story .action { color: #8b5425; }
+    @media (max-width: 40rem) {
+      nav { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .activity { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -64,6 +105,8 @@
       <h1>프롬프트 만들기</h1>
       <p>시작하고 싶은 활동을 골라보세요.</p>
     </header>
+    
+# 캐릭터 프롬프트
     <nav aria-label="프롬프트 활동">
       <a class="activity" href="./1.캐릭터_프롬프트.html">
         <span class="number">01</span>
@@ -71,12 +114,23 @@
         <span class="description">나만의 캐릭터를 상상하고 특징을 글로 표현해요.</span>
         <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
       </a>
+
+# 공간 프롬프트
       <a class="activity space" href="./2.공간_프롬프트.html">
         <span class="number">02</span>
         <strong>공간 프롬프트 만들기</strong>
         <span class="description">만들고 싶은 공간을 떠올리고 프롬프트로 설명해요.</span>
         <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
       </a>
+      
+# 이야기 프롬프트
+      <a class="activity story" href="https://SUB33N.github.io/AI-mates/3.이야기_프롬프트.html">
+        <span class="number">03</span>
+        <strong>이야기 프롬프트 만들기</strong>
+        <span class="description">캐릭터와 공간을 연결해 나만의 이야기를 상상하고 프롬프트로 표현해요.</span>
+        <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
+      </a>
+      
     </nav>
   </main>
 </body>
