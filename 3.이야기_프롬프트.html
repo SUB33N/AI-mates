@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나만의 이야기 프롬프트 만들기</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; background: #f5f6fa; padding: 25px 15px; color: #333; }
+  .container { max-width: 650px; margin: auto; background: white; padding: 25px; border-radius: 18px; box-shadow: 0 4px 15px #00000010; }
+  h2 { text-align: center; color: #5546a5; }
+  .guide { background: #f0edff; padding: 15px; border-radius: 12px; line-height: 1.6; margin-bottom: 20px; }
+  label { display: block; font-weight: bold; margin: 17px 0 7px; }
+  textarea { width: 100%; min-height: 65px; padding: 12px; border: 1px solid #ddd; border-radius: 9px; font-size: 15px; resize: vertical; }
+  textarea:focus { outline: 2px solid #aaa0ef; border-color: #8274d8; }
+  button { width: 100%; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+  .make { background: #6b5bd2; color: white; }
+  .copy { background: #292929; color: white; }
+  #result { width: 100%; min-height: 250px; margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 10px; line-height: 1.7; white-space: pre-wrap; font-size: 14px; }
+  .hint { color: #888; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🌷 나만의 이야기 프롬프트 만들기</h2>
+  <div class="guide">
+    <b>📌 작성 방법</b><br>
+    기·승·전·결에 들어갈 내용을 간단하게 적어주세요.<br>
+    길게 작성하지 않아도 괜찮아요!<br>
+    입력한 내용을 바탕으로 AI가 완성된 프롬프트를 만들어 줍니다.
+  </div>
+
+  <label>🌱 1. 기 (이야기의 시작)</label>
+  <textarea id="gi" placeholder="예: 어느 날 숲속에서 작은 토끼를 만났다."></textarea>
+
+  <label>🌼 2. 승 (사건의 전개)</label>
+  <textarea id="seung" placeholder="예: 토끼가 길을 잃어버려 도움을 요청했다."></textarea>
+
+  <label>🌻 3. 전 (가장 중요한 사건)</label>
+  <textarea id="jeon" placeholder="예: 토끼를 찾으러 가다가 큰 폭풍을 만났다."></textarea>
+
+  <label>🌈 4. 결 (이야기의 마무리)</label>
+  <textarea id="gyeol" placeholder="예: 토끼를 무사히 집에 데려다주었다."></textarea>
+
+  <label>🎨 5. 핵심 장면 (그림으로 표현할 장면)</label>
+  <textarea id="scene" placeholder="예: 폭풍 속에서 토끼를 구해주는 장면"></textarea>
+
+  <p class="hint">※ 모든 칸을 채우지 않아도 됩니다. 원하는 내용만 작성하세요.</p>
+
+  <button class="make" onclick="makePrompt()">✨ 최종 프롬프트 만들기</button>
+  <div id="result" contenteditable="true" aria-label="완성된 프롬프트">여기에 완성된 프롬프트가 나타납니다.</div>
+  <button class="copy" onclick="copyPrompt()">📋 최종 프롬프트 복사하기</button>
+</div>
+
+<script>
+function makePrompt() {
+  const gi = document.getElementById("gi").value.trim();
+  const seung = document.getElementById("seung").value.trim();
+  const jeon = document.getElementById("jeon").value.trim();
+  const gyeol = document.getElementById("gyeol").value.trim();
+  const scene = document.getElementById("scene").value.trim();
+
+  const prompt = `너는 창의적인 이야기 작가이자 그림을 구성하는 전문가야.
+
+아래 학생이 작성한 내용을 바탕으로 하나의 자연스럽고 재미있는 이야기를 완성해줘.
+
+[Step 1. 이야기 구성하기]
+기: ${gi || "학생이 정하지 않음. 자연스럽게 구성해줘."}
+승: ${seung || "학생이 정하지 않음. 자연스럽게 구성해줘."}
+전: ${jeon || "학생이 정하지 않음. 자연스럽게 구성해줘."}
+결: ${gyeol || "학생이 정하지 않음. 자연스럽게 구성해줘."}
+
+각 단계의 내용을 연결하여 기·승·전·결이 분명한 이야기로 작성해줘.
+학생이 작성한 핵심 내용은 최대한 유지하고, 부족한 부분은 창의적으로 보완해줘.
+문장은 학생들이 이해하기 쉬운 수준으로 작성해줘.
+
+[Step 2. 핵심 장면 시각화하기]
+학생이 선택한 핵심 장면: ${scene || "이야기에서 가장 인상 깊은 장면을 선택해줘."}
+
+이야기의 핵심 장면을 네모난 그림 틀 안에 들어갈 수 있도록 시각화해줘.
+인물의 표정, 행동, 배경이 잘 드러나도록 구성해줘.
+그림은 직접 따라 그리기 쉽도록 명확하고 단순하게 표현해줘.
+AI 이미지 생성이 가능하다면 그림도 함께 만들어줘.
+
+[최종 결과]
+1. 완성된 이야기 (기·승·전·결 구분)
+2. 핵심 장면 설명
+3. 핵심 장면 그림
+
+학생의 아이디어를 존중하면서 창의적이고 재미있는 결과물을 만들어줘.`;
+
+  document.getElementById("result").textContent = prompt;
+}
+
+async function copyPrompt() {
+  const result = document.getElementById("result").innerText;
+  if (!result || result.includes("여기에 완성된 프롬프트")) {
+    alert("먼저 최종 프롬프트를 만들어 주세요!");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(result);
+    alert("🎉 프롬프트가 복사되었습니다!");
+  } catch (error) {
+    const area = document.createElement("textarea");
+    area.value = result;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    alert("🎉 프롬프트가 복사되었습니다!");
+  }
+}
+</script>
+</body>
+</html>
