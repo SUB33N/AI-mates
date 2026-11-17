@@ -13,3 +13,7 @@ https://SUB33N.github.io/AI-mates/
 ## 3. 이야기 프롬프트
 
 <https://SUB33N.github.io/AI-mates/3.이야기_프롬프트.html>
+
+## 4. 게임 프롬프트
+
+<https://SUB33N.github.io/AI-mates/4.게임_프롬프트.html>
