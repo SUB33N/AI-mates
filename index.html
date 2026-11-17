@@ -70,6 +70,7 @@
 
     .activity.space { border-color: #c6dbea; }
     .activity.story { border-color: #efd4bb; }
+    .activity.game { border-color: #c8e3d3; }
 
     .activity:hover {
       border-color: #7250b2;
@@ -78,6 +79,7 @@
 
     .activity.space:hover { border-color: #386c8d; }
     .activity.story:hover { border-color: #a56530; }
+    .activity.game:hover { border-color: #397753; }
 
     .activity:focus-visible {
       outline: 3px solid #563e90;
@@ -102,6 +104,11 @@
       color: #8b5425;
     }
 
+    .game .number {
+      background: #e6f5eb;
+      color: #2e6745;
+    }
+
     .activity strong {
       font-size: clamp(1.1rem, 3vw, 1.45rem);
       letter-spacing: -.035em;
@@ -121,6 +128,7 @@
 
     .space .action { color: #24566d; }
     .story .action { color: #8b5425; }
+    .game .action { color: #2e6745; }
 
     @media (max-width: 40rem) {
       nav { grid-template-columns: 1fr; }
@@ -140,7 +148,6 @@
     </header>
 
     <nav aria-label="프롬프트 활동">
-      
       <a class="activity" href="./1.캐릭터_프롬프트.html">
         <span class="number">01</span>
         <strong>캐릭터 프롬프트 만들기</strong>
@@ -162,6 +169,12 @@
         <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
       </a>
 
+      <a class="activity game" href="./4.%20게임_프롬프트.html">
+        <span class="number">04</span>
+        <strong>게임 프롬프트 만들기</strong>
+        <span class="description">나만의 이야기를 직접 플레이할 수 있는 게임으로 만들어요.</span>
+        <span class="action">활동 열기 <span aria-hidden="true">→</span></span>
+      </a>
     </nav>
   </main>
 </body>
